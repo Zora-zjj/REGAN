@@ -18,7 +18,7 @@ class DataLoader:
             '_': 5,
             #'\n': 6
         }
-        self.ix_to_char = {v:k for (k,v) in self.char_to_ix.items()}
+        self.ix_to_char = {v:k for (k,v) in self.char_to_ix.items()}                         #建立字典
         self.readFile(file_path)
         self.idx = 0
         
@@ -84,7 +84,7 @@ class DataLoader:
             self.lines = f.read().split('\n')
         self.total_lines = len(self.lines)
 
-    def frequency(self, file_path, vocab_size=5, seq_len=15):
+    def frequency(self, file_path, vocab_size=5, seq_len=15):                             #？？？？？
         freq_arr = np.zeros((vocab_size,vocab_size))
         with open(file_path, 'r') as f:
             self.lines = f.read().split('\n')
@@ -102,7 +102,7 @@ class DataLoader:
         self.total_lines = len(self.lines)
 
 
-    def convert_to_char(self, data):
+    def convert_to_char(self, data):                                                     #单词的id的序列
         string_arr = []
         for each_tensor in data:
             string = ''.join([self.ix_to_char[i] for i in each_tensor.data.numpy()])
