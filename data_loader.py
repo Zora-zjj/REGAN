@@ -35,7 +35,7 @@ class DataLoader:
         self.idx = 0
         random.shuffle(self.lines)
             
-    def next(self):
+    def next(self):                               #返回all_input_data, all_target_data
         
         # iterator edge case
         if self.idx >= self.total_lines:
