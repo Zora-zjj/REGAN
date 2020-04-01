@@ -17,7 +17,7 @@ class GenDataIter(object):
         self.data_lis = self.read_file(data_file)
         self.data_num = len(self.data_lis)
         self.indices = range(self.data_num)
-        self.num_batches = int(math.floor(float(self.data_num) / self.batch_size))
+        self.num_batches = int(math.floor(float(self.data_num) / self.batch_size))           #几个batch
         self.idx = 0
 
     def __len__(self):
@@ -36,11 +36,11 @@ class GenDataIter(object):
     def next(self):
         if self.idx >= self.data_num:
             raise StopIteration
-        index = self.indices[self.idx:self.idx+self.batch_size]
-        d = [self.data_lis[i] for i in index]
+        index = self.indices[self.idx:self.idx+self.batch_size]                 # index 范围
+        d = [self.data_lis[i] for i in index]                                   # d 为单词序列（14，1）
         d = torch.LongTensor(np.asarray(d, dtype='int64'))
-        data = torch.cat([torch.zeros(self.batch_size, 1).long(), d], dim=1)
-        target = torch.cat([d, torch.zeros(self.batch_size, 1).long()], dim=1)
+        data = torch.cat([torch.zeros(self.batch_size, 1).long(), d], dim=1)    # cat 合并 （14，2）
+        target = torch.cat([d, torch.zeros(self.batch_size, 1).long()], dim=1)   #？？？？
         self.idx += self.batch_size
 
         return data, target
@@ -50,10 +50,10 @@ class GenDataIter(object):
             lines = f.readlines()
         lis = []
         for line in lines:
-            l = line.strip().split(' ')
+            l = line.strip().split(' ')                           #.strip()移除字符串头尾指定的字符（默认为空格或换行符）或字符序列
             l = [int(s) for s in l]
             lis.append(l)
-        return lis
+        return lis                                                #单词序列
 
 class DisDataIter(object):
     """ Toy data iter to load digits"""
