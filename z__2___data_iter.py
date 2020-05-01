@@ -14,7 +14,7 @@ class GenDataIter(object):
     def __init__(self, data_file, batch_size):
         super(GenDataIter, self).__init__()
         self.batch_size = batch_size
-        self.data_lis = self.read_file(data_file)
+        self.data_lis = self.read_file(data_file)      #read_file后面函数
         self.data_num = len(self.data_lis)
         self.indices = range(self.data_num)
         self.num_batches = int(math.floor(float(self.data_num) / self.batch_size))           #几个batch
