@@ -14,8 +14,8 @@ class GenDataIter(object):
     def __init__(self, data_file, batch_size):
         super(GenDataIter, self).__init__()
         self.batch_size = batch_size
-        self.data_lis = self.read_file(data_file)      #read_file后面函数
-        self.data_num = len(self.data_lis)
+        self.data_lis = self.read_file(data_file)      #read_file后面函数，返回单词列表，不去重
+        self.data_num = len(self.data_lis)             #单词总数，不去重
         self.indices = range(self.data_num)
         self.num_batches = int(math.floor(float(self.data_num) / self.batch_size))           #几个batch
         self.idx = 0
@@ -31,17 +31,17 @@ class GenDataIter(object):
     
     def reset(self):
         self.idx = 0
-        random.shuffle(self.data_lis)
+        random.shuffle(self.data_lis)   
 
     def next(self):
         if self.idx >= self.data_num:
             raise StopIteration
-        index = self.indices[self.idx:self.idx+self.batch_size]                 # index 范围
-        d = [self.data_lis[i] for i in index]                                   # d 为单词序列（14，1）
-        d = torch.LongTensor(np.asarray(d, dtype='int64'))
-        data = torch.cat([torch.zeros(self.batch_size, 1).long(), d], dim=1)    # cat 合并 （14，2）
-        target = torch.cat([d, torch.zeros(self.batch_size, 1).long()], dim=1)   #？？？？
-        self.idx += self.batch_size
+        index = self.indices[self.idx:self.idx+self.batch_size]                 # 某个batch内 index 范围
+        d = [self.data_lis[i] for i in index]                                   # 某个batch内的单词序列，[batch_size,1]
+        d = torch.LongTensor(np.asarray(d, dtype='int64'))                      #将单词转为np数据？？？怎么转
+        data = torch.cat([torch.zeros(self.batch_size, 1).long(), d], dim=1)    # cat 合并 (batch_size，2）[0,单词]
+        target = torch.cat([d, torch.zeros(self.batch_size, 1).long()], dim=1)   #        （batch_size，2）[单词,0] 
+        self.idx += self.batch_size        #每个batch的第一个idx号
 
         return data, target
 
@@ -99,7 +99,7 @@ class DisDataIter(object):
 
         return data, label
 
-    def read_real_file(self, data_file):
+    def read_real_file(self, data_file):   #真实数据
         char_to_ix = {
             'x': 0,
             '+': 1,
@@ -122,7 +122,7 @@ class DisDataIter(object):
             lis.append(l)
         return lis
 
-    def read_fake_file(self, data_file):
+    def read_fake_file(self, data_file):  #虚假数据
         with open(data_file, 'r') as f:
             lines = f.readlines()
         lis = []
