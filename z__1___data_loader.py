@@ -35,7 +35,7 @@ class DataLoader:
         self.idx = 0
         random.shuffle(self.lines)                #行行打散
             
-    def next(self):                               #next是迭代   #返回all_input_data, all_target_data  
+    def next(self):                               #next是迭代   #返回某一个batch的all_input_data, all_target_data  
         
         # iterator edge case
         if self.idx >= self.total_lines:          #total_lines : 行数
@@ -48,8 +48,7 @@ class DataLoader:
             end_index = self.total_lines
             
         #包含字符串列表(长度为batch_size，该列表中的每个元素都是math eq字符串)
-        # contains list of strings (length is batch_size and each element of this list is math eq string)
-        batch_lines = self.lines[self.idx : end_index]   #lines中一部分数据即某个batch的数据，长度是一个batch_size
+        batch_lines = self.lines[self.idx : end_index]   #lines中一部分数据即某个batch的数据，长度是一个batch_size，行列数据
         
         #increment idx (bookeeping for iterator)
         self.idx += self.batch_size                      #下一个batch的idx
@@ -59,15 +58,15 @@ class DataLoader:
         # contains target data to be returned
         all_target_data = []
         
-        for i,line in enumerate(batch_lines):    #i从1到batch_size
+        for i,line in enumerate(batch_lines):    #i从1到batch_size，取某个batch内的数据
             # convert char to index (do this for input data and target data)
-            # here input data and target data are staggered by one position
-            input_data = [self.char_to_ix[c] for c in line]
+            # here input data and target data are staggered by one position  #stagger交错
+            input_data = [self.char_to_ix[c] for c in line]  #c是单词？？？，返回某个batch某一行的单词id列表
             # target doesn't contain the first char, add 6 (maps to '\n') to end
             if i == end_index-1:
                 print('break here')
-            target_data = input_data[1:]   
-            target_data.append(random.choice([1,2,3,4]))      #random.choice从给定的1维数组中随机采样
+            target_data = input_data[1:]   #往后移一位单词的单词id列表
+            target_data.append(random.choice([1,2,3,4]))      #random.choice从给定的1维数组中随机采样，取值+—*/的id号，作用保持长度相等？？？
 
             # print(f"line {i}. input_data = {input_data}, target_data = {target_data}")
 
@@ -78,7 +77,7 @@ class DataLoader:
         all_input_data = torch.from_numpy(np.asarray(all_input_data)).long()
         all_target_data = torch.from_numpy(np.asarray(all_target_data)).long()
 
-        return all_input_data, all_target_data
+        return all_input_data, all_target_data  #维度[batch_size,句子单词数量]，数据：单词的id号
     
     def readFile(self, file_path):         #按行阅读
         with open(file_path, 'r') as f:
@@ -89,11 +88,11 @@ class DataLoader:
         freq_arr = np.zeros((vocab_size,vocab_size))
         with open(file_path, 'r') as f:
             self.lines = f.read().split('\n')
-            chars = list(self.lines)
+            chars = list(self.lines)    #输出：列表[“第一句话”，“第一句话”，…]
     
-            for i in range(1,len(chars)):
+            for i in range(1,len(chars)):  # i表示第几句话
                 freq_arr[self.char_to_ix.get(chars[i-1]),self.char_to_ix.get(chars[i])]+=1      # 频数矩阵？？？
-
+                                                               # dict.get(key, default=None)，例如dict.get('Sex', "Never")可多个key，返回字典指定键的值
         if seq_len == 15:    #？？？
             np.save('freq_array.npy',freq_arr/np.sum(freq_arr))
         elif seq_len == 3:
