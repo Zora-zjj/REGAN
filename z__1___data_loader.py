@@ -91,10 +91,10 @@ class DataLoader:
             chars = list(self.lines)    #输出：列表[“第一句话”，“第一句话”，…]
     
             for i in range(1,len(chars)):  # i表示第几句话
-                freq_arr[self.char_to_ix.get(chars[i-1]),self.char_to_ix.get(chars[i])]+=1      # 频数矩阵？？？
+                freq_arr[self.char_to_ix.get(chars[i-1]),self.char_to_ix.get(chars[i])]+=1      # 频数矩阵？？？这样说chars应该是单词而不是句子
                                                                # dict.get(key, default=None)，例如dict.get('Sex', "Never")可多个key，返回字典指定键的值
         if seq_len == 15:    #？？？
-            np.save('freq_array.npy',freq_arr/np.sum(freq_arr))
+            np.save('freq_array.npy',freq_arr/np.sum(freq_arr))   #每个单词占比？？？
         elif seq_len == 3:
             np.save('freq_array_3.npy', freq_arr / np.sum(freq_arr))
 
@@ -102,9 +102,9 @@ class DataLoader:
         self.total_lines = len(self.lines)
 
 
-    def convert_to_char(self, data):                                                     #单词的string的序列
+    def convert_to_char(self, data):          #data形式----batch个句子的单词id的序列？？？例如上面的all_input_data, all_target_data？？？
         string_arr = []
-        for each_tensor in data:
-            string = ''.join([self.ix_to_char[i] for i in each_tensor.data.numpy()])
+        for each_tensor in data:    #each_tensor是一个句子的单词id号序列
+            string = ''.join([self.ix_to_char[i] for i in each_tensor.data.numpy()])  #i是某个id，再转成单词
             string_arr.append(string)
-        return string_arr
+        return string_arr   #由id序列转化成单词序列
