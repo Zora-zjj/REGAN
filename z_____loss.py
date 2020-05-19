@@ -24,16 +24,16 @@ class NLLLoss(nn.Module):
     def forward(self, prob, target):
         """
         Args:
-            prob: (N, C) 
+            prob: (N, C)  #维度
             target : (N, )
         """
         N = target.size(0)
         C = prob.size(1)
-        weight = Variable(self.weight).view((1, -1))
-        weight = weight.expand(N, C)  # (N, C)
+        weight = Variable(self.weight).view((1, -1))  # weight:[1,num_class]？？？
+        weight = weight.expand(N, C)                  # (N, C)  ，1——N，num_class=C ？？？
         if prob.is_cuda:
             weight = weight.cuda()
-        prob = weight * prob
+        prob = weight * prob       # (N, C)*(N, C)
 
         one_hot = torch.zeros((N, C))
         if prob.is_cuda:
@@ -50,7 +50,7 @@ class NLLLoss(nn.Module):
 
 class GANLoss(nn.Module):
 
-    """Reward-Refined NLLLoss Function for adversial training of Generator"""
+    """Reward-Refined NLLLoss Function for adversial training of Generator"""   #奖励-改进NLLLoss函数，用于生成器的逆向训练
 
     def __init__(self):
         super(GANLoss, self).__init__()
