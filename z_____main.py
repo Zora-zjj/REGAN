@@ -29,7 +29,7 @@ isDebug = True
 # ================== Parameter Definition =================
 
 # BASIC TRAINING PARAMETERS
-THC_CACHING_ALLOCATOR = 0
+THC_CACHING_ALLOCATOR = 0  # caching_allocator
 SEED = 88
 random.seed(SEED)
 np.random.seed(SEED)
@@ -147,7 +147,7 @@ def main(opt):
     gen_optimizer = optim.Adam(generator.parameters())
     if cuda:
         gen_criterion = gen_criterion.cuda()
-
+    # 预训练Generator
     # Pretrain Generator using MLE        
     pre_train_scores = []
     if MLE:    
@@ -201,7 +201,7 @@ def main(opt):
             
             if visualize:
                 pretrain_G_score_logger.log(epoch, eval_score)
-
+    # 预训练Discriminator
     # Pretrain Discriminator
     dis_criterion = nn.NLLLoss(size_average=False)
     dis_optimizer = optim.Adam(discriminator.parameters())
@@ -216,7 +216,7 @@ def main(opt):
             print('Epoch [%d], loss: %f' % (epoch, loss))
             if visualize:
                 pretrain_D_loss_logger.log(epoch, loss)
-
+    # 对抗训练
     # Adversarial Training 
     rollout = Rollout(generator, UPDATE_RATE)
     print('#####################################################')
