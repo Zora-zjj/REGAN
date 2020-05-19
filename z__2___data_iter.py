@@ -33,12 +33,12 @@ class GenDataIter(object):
         self.idx = 0
         random.shuffle(self.data_lis)   #打散
 
-    def next(self):
+    def next(self):    #返回一个batch的
         if self.idx >= self.data_num:    # idx ： 句子的id
             raise StopIteration
         index = self.indices[self.idx:self.idx+self.batch_size]                 # 某个batch内句子的idx 范围
         d = [self.data_lis[i] for i in index]                                   # 某个batch内的句子序列，[batch_size,1]
-        d = torch.LongTensor(np.asarray(d, dtype='int64'))                      #将单词转为np数据？？？怎么转
+        d = torch.LongTensor(np.asarray(d, dtype='int64'))                      #将句子转为np数据？？？怎么转
         data = torch.cat([torch.zeros(self.batch_size, 1).long(), d], dim=1)    # cat 合并 (batch_size，2）[0,单词]
         target = torch.cat([d, torch.zeros(self.batch_size, 1).long()], dim=1)   #        （batch_size，2）[单词,0] 
         self.idx += self.batch_size        #每个batch的第一个idx号
