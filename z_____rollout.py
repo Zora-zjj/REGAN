@@ -50,33 +50,33 @@ class Rollout(object):
         batch_size = x.size(0)
         seq_len = x.size(1)
         for i in range(num):
-            for l in range(1, seq_len):
+            for l in range(1, seq_len):  #预测部分单词的句子    #l代指第几个单词
                 data = x[:, 0:l]
-                samples = self.own_model.sample(batch_size, seq_len, data)
-                pred = discriminator(samples)
+                samples = self.own_model.sample(batch_size, seq_len, data)   #random.sample(list, 5)：从list中随机获取5个元素，作为一个片断返回
+                pred = discriminator(samples)   #预测句子一部分是否真实
                 pred = pred.cpu().data[:,1].numpy()
                 if i == 0:
                     rewards.append(pred)
                 else:
-                    rewards[l-1] += pred
+                    rewards[l-1] += pred    #？？？报错
             # for the last token
-            pred = discriminator(x)
+            pred = discriminator(x)     #预测整个句子
             pred = pred.cpu().data[:, 1].numpy()
             if i == 0:
                 rewards.append(pred)
             else:
                 rewards[seq_len-1] += pred
-        rewards = np.transpose(np.array(rewards)) / (1.0 * num) # batch_size * seq_len
+        rewards = np.transpose(np.array(rewards)) / (1.0 * num)    # batch_size * seq_len？？？
         return rewards
 
     def update_params(self):
         dic = {}
-        for name, param in self.ori_model.named_parameters():
+        for name, param in self.ori_model.named_parameters():   #字典{name:param}
             dic[name] = param.data
         for name, param in self.own_model.named_parameters():
-            if name.startswith('emb'):
+            if name.startswith('emb'):     #str.startswith(substr, beg=0,end=len(string))检查字符串是否是以指定子字符串开头,若beg和end指定值则在指定范围内检查。
                 param.data = dic[name]
             else:
-                param.data = self.update_rate * param.data + (1 - self.update_rate) * dic[name]
+                param.data = self.update_rate * param.data + (1 - self.update_rate) * dic[name]     # lr*param+(1-lr)*dic[name]
 
 
