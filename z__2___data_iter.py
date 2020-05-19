@@ -14,11 +14,11 @@ class GenDataIter(object):
     def __init__(self, data_file, batch_size):
         super(GenDataIter, self).__init__()
         self.batch_size = batch_size
-        self.data_lis = self.read_file(data_file)      #read_file后面函数，返回单词列表，不去重
-        self.data_num = len(self.data_lis)             #单词总数，不去重
-        self.indices = range(self.data_num)
+        self.data_lis = self.read_file(data_file)      #read_file后面函数，返回单词列表，不去重,    # 例如[['When', 'forty', 'winters'],[],[] ]
+        self.data_num = len(self.data_lis)             #单词总数，不去重XXX错    #句子数量
+        self.indices = range(self.data_num)            #句子的id范围
         self.num_batches = int(math.floor(float(self.data_num) / self.batch_size))           #几个batch
-        self.idx = 0
+        self.idx = 0                                  #句子的id
 
     def __len__(self):
         return self.num_batches
@@ -31,13 +31,13 @@ class GenDataIter(object):
     
     def reset(self):
         self.idx = 0
-        random.shuffle(self.data_lis)   
+        random.shuffle(self.data_lis)   #打散
 
     def next(self):
-        if self.idx >= self.data_num:
+        if self.idx >= self.data_num:    # idx ： 句子的id
             raise StopIteration
-        index = self.indices[self.idx:self.idx+self.batch_size]                 # 某个batch内 index 范围
-        d = [self.data_lis[i] for i in index]                                   # 某个batch内的单词序列，[batch_size,1]
+        index = self.indices[self.idx:self.idx+self.batch_size]                 # 某个batch内句子的idx 范围
+        d = [self.data_lis[i] for i in index]                                   # 某个batch内的句子序列，[batch_size,1]
         d = torch.LongTensor(np.asarray(d, dtype='int64'))                      #将单词转为np数据？？？怎么转
         data = torch.cat([torch.zeros(self.batch_size, 1).long(), d], dim=1)    # cat 合并 (batch_size，2）[0,单词]
         target = torch.cat([d, torch.zeros(self.batch_size, 1).long()], dim=1)   #        （batch_size，2）[单词,0] 
@@ -51,9 +51,9 @@ class GenDataIter(object):
         lis = []
         for line in lines:
             l = line.strip().split(' ')                           #.strip()移除字符串头尾指定的字符（默认为空格或换行符）或字符序列
-            l = [int(s) for s in l]
+            l = [int(s) for s in l]                               # int()去掉，否则报错
             lis.append(l)
-        return lis                                                #单词序列
+        return lis                                                #单词序列，例如[['When', 'forty', 'winters'],[],[] ]
 
 class DisDataIter(object):
     """ Toy data iter to load digits"""
