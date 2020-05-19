@@ -18,28 +18,28 @@ from helpers import *
 class Rollout(object):
     """Roll-out policy"""
     def __init__(self, model, update_rate):
-        self.ori_model = model
-        self.own_model = copy.deepcopy(model)
+        self.ori_model = model                #浅拷贝，类似copy.copy ,当model改变时ori_model改变
+        self.own_model = copy.deepcopy(model) #深拷贝                当model改变时own_model不改变
         self.update_rate = update_rate
 
     def get_reward(self, x, discriminator, VOCAB_SIZE, cuda):
         """
         Args:
-            x : (batch_size, seq_len) input data
+            x : (batch_size, seq_len) input data  #数据：单词id
             discriminator : discrimanator model
-            Directly outputting the prob of one sequence (no rollout)
+            Directly outputting the prob of one sequence (no rollout) 直接输出一个序列的prob
         """
         batch_size = x.size(0)
         seq_len = x.size(1)
 
         # samples = self.own_model.sample(batch_size, seq_len, x)
-        one_hot_samples = convert_to_one_hot(x, VOCAB_SIZE, cuda)
-        pred = discriminator(one_hot_samples)
+        one_hot_samples = convert_to_one_hot(x, VOCAB_SIZE, cuda)   #x的one-hot形式，[b,seq_len,vocab_size]
+        pred = discriminator(one_hot_samples)  # pred:[b,1],一个batch内第b个句子的真假概率
         pred = pred.cpu().data[:,1].numpy()
         
         return pred
     
-    def get_reward_mc(self, x, num, discriminator):
+    def get_reward_mc(self, x, num, discriminator):  #Monte Carlo？？？
         """
         Args:
             x : (batch_size, seq_len) input data
