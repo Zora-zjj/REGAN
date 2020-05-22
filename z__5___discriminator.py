@@ -11,7 +11,7 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 
 
-class Discriminator(nn.Module):
+class Discriminator(nn.Module):   #文本分类，输入caption  x: (batch_size , seq_len)，用CNN返回整个x的分类
     """A CNN for text classification
 
     architecture: Embedding >> Convolution >> Max-pooling >> Softmax
@@ -32,21 +32,21 @@ class Discriminator(nn.Module):
         Args:
             x: (batch_size , seq_len)
         """
-        emb = self.emb(x).unsqueeze(1)  # batch_size * 1 * seq_len * emb_dim
+        emb = self.emb(x).unsqueeze(1)       # [batch_size,1,seq_len,emb_dim]
         convs = [F.relu(conv(emb)).squeeze(3) for conv in self.convs]  # [batch_size * num_filter * length]
         pools = [F.max_pool1d(conv, conv.size(2)).squeeze(2) for conv in convs] # [batch_size * num_filter]
         pred = torch.cat(pools, 1)  # batch_size * num_filters_sum
         highway = self.highway(pred)
         pred = F.sigmoid(highway) *  F.relu(highway) + (1. - F.sigmoid(highway)) * pred
         pred = self.softmax(self.lin(self.dropout(pred)))
-        return pred
+        return pred          # [batch_size,num_classes]
 
     def init_parameters(self):
         for param in self.parameters():
             param.data.uniform_(-0.05, 0.05)
 
 
-class LSTMDiscriminator(nn.Module):
+class LSTMDiscriminator(nn.Module):     #用lstm返回最后一步的分类，同上面class好像返回结果类型一样
     """
         Many to one LSTM
     """
@@ -67,25 +67,14 @@ class LSTMDiscriminator(nn.Module):
 
     """
     def forward(self, x):
-        # input x is now batch_size x seq_len x vocab_size
+        # input x is now [batch_size,seq_len,vocab_size]
         
         h0, c0 = self.init_hidden(x.size(0))
         output, (h, c) = self.lstm(x, (h0, c0))  # output dim: (batch_size, seq_length, hidden_dim)
         seq_len = output.size()[1]
         batch_size = output.size()[0]
-        output = self.lin(output.contiguous())[: , -1 , : ] # only need last lstm block's output
-        return self.softmax(output.contiguous()) # returning dim
-
-        # # x dim: batch_size x seq_len
-        # emb = self.emb(x)                           # batch_size * seq_len * emb_dim
-        # h0, c0 = self.init_hidden(emb.size(0))
-        # output, (h, c) = self.lstm(emb, (h0, c0))  # output dim: (batch_size, seq_length, hidden_dim)
-
-        # seq_len = output.size()[1]
-        # batch_size = output.size()[0]
-        
-        # output = self.lin(output.contiguous())[: , -1 , : ] # only need last lstm block's output
-        # return self.softmax(output.contiguous()) # returning dim
+        output = self.lin(output.contiguous())[: , -1 , : ] # only need last lstm block's output只需要最后一个lstm块的输出
+        return self.softmax(output.contiguous()) # returning dim   [batch_size, 1, num_classes]
 
     def init_hidden(self, batch_size):
         # noise distribution fed to G
