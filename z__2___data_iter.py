@@ -15,7 +15,7 @@ class GenDataIter(object):
         super(GenDataIter, self).__init__()
         self.batch_size = batch_size
         self.data_lis = self.read_file(data_file)      #read_file后面函数，返回单词列表，不去重,    # 例如[['When', 'forty', 'winters'],[],[] ]
-        self.data_num = len(self.data_lis)             #单词总数，不去重XXX错    #句子数量
+        self.data_num = len(self.data_lis)             #句子数量
         self.indices = range(self.data_num)            #句子的id范围
         self.num_batches = int(math.floor(float(self.data_num) / self.batch_size))           #几个batch
         self.idx = 0                                  #句子的id
@@ -37,17 +37,17 @@ class GenDataIter(object):
         if self.idx >= self.data_num:    # idx ： 句子的id
             raise StopIteration
         index = self.indices[self.idx:self.idx+self.batch_size]                 # 某个batch内句子的idx 范围
-        d = [self.data_lis[i] for i in index]                                   # 某个batch内的句子序列，[batch_size,1]
+        d = [self.data_lis[i] for i in index]                                   # 某个batch内的句子序列，[batch_size,1]：[['When', 'forty', 'winters'],[],[] ]
         d = torch.LongTensor(np.asarray(d, dtype='int64'))                      #将句子转为np数据？？？怎么转
-        data = torch.cat([torch.zeros(self.batch_size, 1).long(), d], dim=1)    # cat 合并 (batch_size，2）[0,单词]
-        target = torch.cat([d, torch.zeros(self.batch_size, 1).long()], dim=1)   #        （batch_size，2）[单词,0] 
+        data = torch.cat([torch.zeros(self.batch_size, 1).long(), d], dim=1)    # cat 合并 (batch_size，2）[0,单词1,单词n]
+        target = torch.cat([d, torch.zeros(self.batch_size, 1).long()], dim=1)   #        （batch_size，2）[单词1,单词n,0]，作用？？？ 
         self.idx += self.batch_size        #每个batch的第一个idx号
 
         return data, target
 
-    def read_file(self, data_file):
+    def read_file(self, data_file):    #句子文档
         with open(data_file, 'r') as f:
-            lines = f.readlines()
+            lines = f.readlines()      #一行一行读
         lis = []
         for line in lines:
             l = line.strip().split(' ')                           #.strip()移除字符串头尾指定的字符（默认为空格或换行符）或字符序列
@@ -61,16 +61,16 @@ class DisDataIter(object):
         super(DisDataIter, self).__init__()
         self.batch_size = batch_size
         self.seq_len = seq_len
-        real_data_lis = self.read_real_file(real_data_file)
+        real_data_lis = self.read_real_file(real_data_file)  #返回单词id
         fake_data_lis = self.read_fake_file(fake_data_file)
-        self.data = real_data_lis + fake_data_lis
+        self.data = real_data_lis + fake_data_lis    #[[id1, id2, id3],[],[],[假句子1],[2]]  将真假句子合并
         self.labels = [1 for _ in range(len(real_data_lis))] +\
-                        [0 for _ in range(len(fake_data_lis))]
-        self.pairs = list(zip(self.data, self.labels))
-        self.data_num = len(self.pairs)
+                        [0 for _ in range(len(fake_data_lis))]  #[1,1,1,0,0]
+        self.pairs = list(zip(self.data, self.labels))   #[[句子1,1],[][]]
+        self.data_num = len(self.pairs)                  #真句子+假句子 总数
         #self.data_num = sum(1 for _ in self.pairs)
         self.indices = range(self.data_num)
-        self.num_batches = int(math.floor(float(self.data_num)/self.batch_size))
+        self.num_batches = int(math.floor(float(self.data_num)/self.batch_size)) #几个batch
         self.idx = 0
 
     def __len__(self):
@@ -84,7 +84,7 @@ class DisDataIter(object):
     
     def reset(self):
         self.idx = 0
-        random.shuffle(self.pairs)
+        random.shuffle(self.pairs)   #打散
 
     def next(self):
         if self.idx >= self.data_num:
@@ -97,7 +97,7 @@ class DisDataIter(object):
         label = torch.LongTensor(np.asarray(label, dtype='int64'))
         self.idx += self.batch_size
 
-        return data, label
+        return data, label   #data：[batch_size,seq_len]数据：单词id   label:1/0
 
     def read_real_file(self, data_file):   #真实数据
         char_to_ix = {
