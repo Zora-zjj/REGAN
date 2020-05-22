@@ -77,7 +77,7 @@ class DataLoader:
         all_input_data = torch.from_numpy(np.asarray(all_input_data)).long()
         all_target_data = torch.from_numpy(np.asarray(all_target_data)).long()
 
-        return all_input_data, all_target_data  #维度[batch_size,句子单词数量]，数据：单词的id号
+        return all_input_data, all_target_data  #维度[batch_size,seq_len]，数据：单词的id号
     
     def readFile(self, file_path):         #按行阅读
         with open(file_path, 'r') as f:
