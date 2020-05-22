@@ -49,7 +49,7 @@ class AnnexNetwork(nn.Module):   #文本分类
         for param in self.parameters():
             param.data.normal_(0, 0.02)
 
-class LSTMAnnexNetwork(nn.Module):
+class LSTMAnnexNetwork(nn.Module):    #用lstm返回最后一个lstm块的输出
     """
         Many to one LSTM
     """
@@ -60,7 +60,7 @@ class LSTMAnnexNetwork(nn.Module):
         self.use_cuda = use_cuda
         self.g_sequence_len = g_sequence_len
         self.batch_size = batch_size
-        self.lstm = nn.LSTM(vocab_size, hidden_dim, batch_first=True)
+        self.lstm = nn.LSTM(vocab_size, hidden_dim, batch_first=True)   #对于batch_first=True,输入的ho，co还是b在后，x是b在前？？？
         self.lin = nn.Linear(hidden_dim, num_classes)
         self.softmax = nn.LogSoftmax()
         self.init_parameters()
@@ -72,13 +72,13 @@ class LSTMAnnexNetwork(nn.Module):
     def forward(self, x):
                                                                            # x dims (batch_size * seq_len , vocab_size)
         x = x.view(self.batch_size, self.g_sequence_len, self.vocab_size)  #        (batch-size, seq_len, vocab_size)
-        h0, c0 = self.init_hidden(x.size(0))     # x.size(0)=batch_size    # h0, c0 =[1, batch_size, hidden_dim]数据为0
-        output, (h, c) = self.lstm(x, (h0, c0))  # output dim: (batch_size, seq_length, hidden_dim)
+        h0, c0 = self.init_hidden(x.size(0))     # x.size(0)=batch_size    # h0, c0 =[1, batch_size, hidden_dim]数据为0，输入数据不是把batch方最前
+        output, (h, c) = self.lstm(x, (h0, c0))  # output 维度[batch_size, seq_length, hidden_dim]
 
         seq_len = output.size()[1]
         batch_size = output.size()[0]
         
-        output = self.lin(output.contiguous())[: , -1 , : ] # only need last lstm block's output
+        output = self.lin(output.contiguous())[: , -1 , : ] # only need last lstm block's output只需要最后一个lstm块的输出
         return self.softmax(output.contiguous()) # returning dim
 
     def init_hidden(self, batch_size):
