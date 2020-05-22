@@ -13,7 +13,7 @@ from torch.autograd import Variable
 
 
 
-class AnnexNetwork(nn.Module):
+class AnnexNetwork(nn.Module):   #文本分类
     """A CNN for text classification
 
     architecture: Embedding >> Convolution >> Max-pooling >> Softmax
@@ -21,7 +21,7 @@ class AnnexNetwork(nn.Module):
 
     def __init__(self, num_classes, vocab_size, emb_dim, filter_sizes, num_filters, dropout, batch_size, g_sequence_len):
         super(AnnexNetwork, self).__init__()
-        self.convs = nn.ModuleList([nn.Conv2d(1, n, (f, vocab_size)) for (n, f) in zip(num_filters, filter_sizes)])
+        self.convs = nn.ModuleList([nn.Conv2d(1, n, (f, vocab_size)) for (n, f) in zip(num_filters, filter_sizes)])  #多种不同的n和f
         self.highway = nn.Linear(sum(num_filters), sum(num_filters))
         self.dropout = nn.Dropout(p=dropout)
         self.lin = nn.Linear(sum(num_filters), num_classes)
@@ -34,17 +34,16 @@ class AnnexNetwork(nn.Module):
     def forward(self, x):
         """
         Args:
-            x: (batch_size*g_sequence_len, vocab_size)
+            x: (batch_size*g_sequence_len, vocab_size)                          #输入，one-hot？？？
         """
-        emb = x.view(self.batch_size, 1, self.g_sequence_len, self.vocab_size) # batch_size * 1 * seq_len * vocab_size
-        convs = [F.relu(conv(emb)).squeeze(3) for conv in self.convs]  # [batch_size * num_filter * length]
+        emb = x.view(self.batch_size, 1, self.g_sequence_len, self.vocab_size)  # batch_size * 1 * seq_len * vocab_size
+        convs = [F.relu(conv(emb)).squeeze(3) for conv in self.convs]           # [batch_size * num_filter * length]
         pools = [F.max_pool1d(conv, conv.size(2)).squeeze(2) for conv in convs] # [batch_size * num_filter]
-        pred = torch.cat(pools, 1)  # batch_size * num_filters_sum
-        highway = self.highway(pred)
+        pred = torch.cat(pools, 1)                                              # [batch_size , sum(num_filters)]
+        highway = self.highway(pred)                         #linear            # [batch_size , sum(num_filters)]
         pred = F.sigmoid(highway) *  F.relu(highway) + (1. - F.sigmoid(highway)) * pred
-        pred = self.softmax(self.lin(self.dropout(pred)))
-
-        return pred
+        pred = self.softmax(self.lin(self.dropout(pred)))    #linear            # [batch_size , num_classes] 
+        return pred   #分成各个种类的概率
 
     def init_parameters(self):
         for param in self.parameters():
@@ -67,13 +66,13 @@ class LSTMAnnexNetwork(nn.Module):
         self.init_parameters()
     """
         x is output of Generator
-        x dimensions: (batch_size, seq_len, vocab_size)
+        x dimensions: (batch_size, seq_len, vocab_size)   #输入
 
     """
     def forward(self, x):
-        # x dims (batch_size * seq_len , vocab_size)
-        x = x.view(self.batch_size, self.g_sequence_len, self.vocab_size) # (batch-size, seq_len, vocab_size)
-        h0, c0 = self.init_hidden(x.size(0))
+                                                                           # x dims (batch_size * seq_len , vocab_size)
+        x = x.view(self.batch_size, self.g_sequence_len, self.vocab_size)  #        (batch-size, seq_len, vocab_size)
+        h0, c0 = self.init_hidden(x.size(0))     # x.size(0)=batch_size    # h0, c0 =[1, batch_size, hidden_dim]数据为0
         output, (h, c) = self.lstm(x, (h0, c0))  # output dim: (batch_size, seq_length, hidden_dim)
 
         seq_len = output.size()[1]
@@ -84,7 +83,7 @@ class LSTMAnnexNetwork(nn.Module):
 
     def init_hidden(self, batch_size):
         # noise distribution fed to G
-        h = Variable(torch.zeros((1, batch_size, self.hidden_dim)))
+        h = Variable(torch.zeros((1, batch_size, self.hidden_dim)))   # [1, batch_size, hidden_dim]
         c = Variable(torch.zeros((1, batch_size, self.hidden_dim)))
         if self.use_cuda:
             h, c = h.cuda(), c.cuda()
