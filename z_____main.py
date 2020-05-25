@@ -29,7 +29,7 @@ isDebug = True
 # ================== Parameter Definition =================
 
 # BASIC TRAINING PARAMETERS
-THC_CACHING_ALLOCATOR = 0  # caching_allocator
+THC_CACHING_ALLOCATOR = 0  # caching_allocator缓存分配器
 SEED = 88
 random.seed(SEED)
 np.random.seed(SEED)
@@ -54,13 +54,13 @@ else:
     VOCAB_SIZE = 5
 
 # PRE-TRAINING
-# Loading weights currently not supported if SPACES = True
+# Loading weights currently not supported if SPACES = True。若SPACES = True当前不支持加载权重
 MLE = False # If True, do pre-training, otherwise, load weights
 if SEQ_LEN == 3:
     weights_path = "checkpoints/MLE_space_False_length_3_preTrainG_epoch_0_official.pth"
 else:
     weights_path = "checkpoints/MLE_space_False_length_15_preTrainG_epoch_2_official.pth"
-PRE_EPOCH_GEN = 3 if isDebug else 120 # can be a decimal number
+PRE_EPOCH_GEN = 3 if isDebug else 120 # can be a decimal number 小数
 PRE_EPOCH_DIS = 0 if isDebug else 5
 PRE_ITER_DIS = 0 if isDebug else 3
 
