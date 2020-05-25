@@ -257,15 +257,15 @@ def c_phi_out(GD, c_phi_hat, theta_prime, discriminator, temperature=0.1, eta=No
             c2=c2.cuda()
     return c1,c2
 
-# get the number of parameters of a neural network
+# get the number of parameters of a neural network得到参数总数量
 def get_n_params(model):
     pp=0
     for p in list(model.parameters()):
         nn=1
-        for s in list(p.size()):
-            nn = nn*s
+        for s in list(p.size()):  #s:[3,4,5]
+            nn = nn*s             #nn=3*4*5
         pp += nn
-    return pp
+    return pp  #返回模型model的参数总数量
 
 # per batch score 
 def get_data_goodness_score(all_data, SPACES=False):
@@ -277,7 +277,7 @@ def get_data_goodness_score(all_data, SPACES=False):
 
     return total_batch_score/len(all_data)
 
-# goodness score on just one sequence
+# goodness score on just one sequence.一个句子的goodness score
 def get_seq_goodness_score(seq, SPACES=False):
 
     # seq dim is a string of length len(seq)
