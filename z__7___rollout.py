@@ -27,7 +27,7 @@ class Rollout(object):
         Args:
             x : (batch_size, seq_len) input data  #数据：单词id
             discriminator : discrimanator model
-            Directly outputting the prob of one sequence (no rollout) 直接输出一个序列的prob
+            Directly outputting the prob of one sequence (no rollout) 直接输出一个序列的prob (没rollout)
         """
         batch_size = x.size(0)
         seq_len = x.size(1)
